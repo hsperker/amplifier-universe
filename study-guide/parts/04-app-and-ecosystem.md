@@ -502,7 +502,7 @@ def test_now_returns_iso_string():
     assert result.error is None
 ```
 
-Two principles. First, the coordinator surface a `mount()` function actually uses is small — `mount(point, instance, name=...)` plus `register_cleanup()` in some cases — so a stub takes ten lines. Second, run the test with `pytest tests/` from the module repo; no Amplifier CLI, no kernel install, no API key. This is what `amplifier module dev test` runs under the hood.
+Two principles. First, the coordinator surface that `mount()` actually touches is small — `mount(point, instance, name=...)` plus `register_cleanup()` in some cases — so a stub takes ten lines. Second, run the test with `pytest tests/` from the module repo; no Amplifier CLI, no kernel install, no API key. This is what `amplifier module dev test` runs under the hood.
 
 ---
 
