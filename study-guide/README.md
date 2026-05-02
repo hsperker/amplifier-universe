@@ -34,26 +34,4 @@ have already skimmed `../GLOSSARY.md` and want depth.
 - **[../GLOSSARY.md](../GLOSSARY.md)** — single-page reference for every term
   used here. Keep it open while reading.
 
-## Suggested glossary additions
-
-The chapter agents surfaced concepts present in primary sources but not in
-the current glossary. Each is a candidate for a future glossary entry:
-
-| Term | Where it surfaced | Why it earns an entry |
-|---|---|---|
-| `on_session_ready()` | Chapter 1 (kernel CONTRACTS) | Second optional module entry point alongside `mount()`. |
-| Contribution channels (`register_contributor` / `collect_contributions`) | Chapter 1 | Cross-module discovery primitive distinct from the capability registry. |
-| Static provider capabilities (`ProviderInfo.capabilities`) | Chapter 1 | Distinct from the runtime capability registry — disambiguation needed. |
-| Polyglot transports (native / python / grpc / wasm) | Chapter 1 | Four-way module transport split referenced throughout the docs. |
-| Two-implementation rule | Chapter 1 | Governance rule for kernel additions; distinct from mechanism vs policy. |
-| `source_base_paths` | Chapter 2 | The actual data structure behind @mention resolution. |
-| Soft reference (`namespace:path` without `@`) | Chapter 2 + 3 | Token-budget pattern, distinct from `@mentions` and `context.include`. |
-| `source_resolver` callback on `prepare()` | Chapter 2 | App-layer override seam between bundle composition and kernel module-source resolution. |
-| Output Contract | Chapter 3 | Section of an agent's instruction defining response shape callers can rely on. |
-| Thin awareness pointer | Chapter 3 | Named pattern: a 25–40 line context file paired with a context-sink agent. |
-| Module ID vs package name vs import path | Chapter 4 | Three derivations of the same logical name; mismatches are a common silent failure. |
-| Project slug | Chapter 4 | Path-derived directory under `~/.amplifier/projects/` that drives session scoping. |
-| Mutable vs immutable refs | Chapter 4 | `@main` vs `@v1.0.0` vs SHA — material to reproducibility. |
-
-These can be added to `GLOSSARY.md` as a follow-up; the chapters reference
-them inline whether or not the glossary entry exists.
+The glossary was extended after this guide was written to include a set of terms surfaced during chapter research (`on_session_ready()`, contribution channels, polyglot transports, the two-implementation rule, `source_base_paths`, soft references, `source_resolver`, mutable vs immutable refs, output contract, thin awareness pointer, project slug, module ID vs package name vs import path, and static provider capabilities). All are now first-class entries in `../GLOSSARY.md`.

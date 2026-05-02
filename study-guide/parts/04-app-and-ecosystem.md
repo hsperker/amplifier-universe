@@ -97,7 +97,7 @@ API keys live in `~/.amplifier/keys.env` (set by the wizard) and can also be sup
 - **Scope flags are consequential.** `--local` is invisible to teammates; `--project` is committed. If you `amplifier provider use anthropic --project` you have just put your team on Anthropic. Use `--local` for personal preferences.
 - **`amplifier provider current` shows the resolution chain**, not just the active provider. Read it when settings appear to ignore your changes.
 
-**Related.** Bundles can declare their own provider preferences (Chapter 2 §2.4). A bundle's choice can be overridden by `provider use` at any scope.
+**Related.** Bundles can declare their own provider preferences (Chapter 3 §3.4). A bundle's choice can be overridden by `provider use` at any scope.
 
 ---
 
@@ -227,7 +227,7 @@ The slug is path-derived. If you rename or move a project directory, its old ses
 ### Pitfalls
 
 - **`amplifier continue` resolves "most recent" within the current project.** From a different directory, it picks the most recent session in *that* project.
-- **Resuming with a different bundle is allowed but not always sensible.** Tools that existed in the original session may be absent in the new bundle; transcript references can become stale. The session ID provides continuity (Chapter 2's `PreparedBundle.create_session(session_id=...)` pattern), but the configuration around it can change.
+- **Resuming with a different bundle is allowed but not always sensible.** Tools that existed in the original session may be absent in the new bundle; transcript references can become stale. The resume path provides continuity through the session ID, but the configuration around it can change.
 
 **Related.** Hooks like `hooks-logging` write to `events.jsonl` in this directory; that is what the log viewer (§4.6) consumes.
 
