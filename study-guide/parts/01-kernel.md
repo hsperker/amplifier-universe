@@ -42,9 +42,11 @@ This split exists because policies are where reasonable teams disagree. If the k
 
 The split is enforceable. The kernel's anti-patterns list explicitly bans provider selection, orchestration strategy, output format choice, logging destination, and default resolution from kernel code. When in doubt, prototype as a module first; only extract to the kernel after at least two independent modules need the same primitive (the "two-implementation rule").
 
+This same posture is what `CORE_DEVELOPMENT_PRINCIPLES.md` calls the **complexity budget**: the kernel ships with a limited number of concepts, and adding another costs from a fixed pool. Removal is always cheaper than addition, so changes that look like "small refactors" but actually introduce a new concept face the same bar as a new feature. A related rule is **"retcon, don't evolve"** — when a kernel concept needs to change shape, the project rewrites callers to match the new model rather than carrying compatibility shims, because shims compound complexity and silently encode old policies.
+
 ### Userspace
 
-In Amplifier, "userspace" is everything outside the kernel: Providers, Tools, Orchestrators, ContextManagers, Hooks — and the Bundles and Apps built on top of them. The Linux analogy is exact. Modules implement protocols (the "studs"), are loaded into a running session, and can be unloaded or replaced. Userspace innovation is fast and parallel; kernel evolution is slow and additive.
+In Amplifier, "userspace" is everything outside the kernel: Providers, Tools, Orchestrators, ContextManagers, Hooks — and the Bundles and Apps built on top of them. The Linux analogy is exact. The same shape appears in the kernel team's "**Bricks and Studs**" slogan: the kernel exposes a small set of stable connection points (the *studs* — protocols and mount points), and modules are interchangeable *bricks* that snap onto them. Userspace innovation is fast and parallel; kernel evolution is slow and additive.
 
 Practical consequence: when you want new behavior, you almost always want a module. The chapters that follow (`Chapter 2` on bundles/composition, `Chapter 3` on agents/behaviors/recipes, `Chapter 4` on the CLI) all describe userspace.
 
@@ -71,6 +73,8 @@ You do not need to know Rust to write modules. You do need to know that the boun
 "Ruthless simplicity" is the operating principle: as simple as possible but no simpler; every abstraction must justify its existence; code you don't write has no bugs. In kernel work, that translates to a high bar for additions and a strong preference for deletion. Releases are deliberately small and boring.
 
 "Text-first" means representations are human-readable and inspectable. Mount Plans are plain dicts. Hook events carry JSON-serializable data. The unified observability stream is JSONL. There is no hidden state, no magic globals, no opaque binary blob between modules and the kernel. If you cannot diff it, the kernel doesn't want it.
+
+A governance corollary lives in `CORE_DEVELOPMENT_PRINCIPLES.md`: the **Pre-Merge Gate**, sometimes called *"merge is release"*. Because the kernel publishes a single PyPI artifact, every merge into `main` is effectively a release; there is no staging branch where a dubious change can settle. The gate is therefore explicit — protocol changes, public-API additions, and version bumps run a stricter review than ordinary refactors. The practical effect on contributors is that "we'll fix it after merge" is not an option for kernel changes.
 
 **Related**: Mount Plan (§1.2), the five module protocols (§1.3), `Chapter 2` on how Bundles compile to Mount Plans.
 
@@ -270,7 +274,7 @@ search_tool = coordinator.get_capability("my_module.search_tool")  # may be None
 
 Use it sparingly. The canonical use is in `on_session_ready()` after the full mount wave, paired with closure-captured state inside `mount()`. Capability names are conventionally namespaced (`<module>.<thing>`). A canonical use is app↔module IoC — the CLI registers `session.spawn` so any module that needs to start a child session can request it via the coordinator. See `amplifier-core/docs/CAPABILITY_REGISTRY.md`.
 
-> Note: there is also a *static* notion of capability — strings like `tools.streaming` advertised by providers in `ProviderInfo.capabilities` and used for routing. That is different from the runtime registry described here; see `docs/specs/PROVIDER_SPECIFICATION.md` for the static taxonomy.
+> Note: there is also a *static* notion of capability — the **static provider capabilities** strings (`tools`, `tools.streaming`, `vision`, `prompt_caching`, etc.) that providers advertise via `ProviderInfo.capabilities` and that orchestrators and behaviors use for routing. That is different from the runtime capability registry described here: static = declared by a module in code, runtime = registered into the coordinator during a session. See `docs/specs/PROVIDER_SPECIFICATION.md` for the static taxonomy.
 
 **Related**: Coordinator (§1.2), `on_session_ready` (§1.2).
 
