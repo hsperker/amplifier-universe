@@ -1,6 +1,8 @@
 # Chapter 1 — The Kernel Layer
 
-The kernel is `amplifier-core`: a Rust crate plus its PyO3 Python bindings that does as little as possible. It loads modules, wires them into a session, dispatches lifecycle events, and otherwise stays out of the way. Everything that smells like a product decision — which model, which loop, what to log, where to write — lives outside the kernel as a swappable module. This chapter teaches the kernel's vocabulary so the rest of the system makes sense: when you read `Chapter 2` on bundles or `Chapter 3` on agents, the names and types here will already be familiar.
+The kernel is `amplifier-core`: a Rust crate plus its PyO3 Python bindings that does as little as possible. It loads modules, wires them into a session, dispatches lifecycle events, and otherwise stays out of the way.
+
+Everything that smells like a product decision — which model, which loop, what to log, where to write — lives outside the kernel as a swappable module. This chapter teaches the kernel's vocabulary so the rest of the system makes sense: when you read `Chapter 2` on bundles or `Chapter 3` on agents, the names and types here will already be familiar.
 
 ## Concepts covered
 
@@ -291,8 +293,6 @@ What the kernel guarantees (from `SESSION_FORK_SPECIFICATION.md`): every event t
 **Related**: Mount Plan (§1.2), `Chapter 3` on agents.
 
 ### Hook (runtime), HookResult, Event
-
-Three tightly related concepts; understand them together.
 
 An **Event** is a named lifecycle moment with a JSON-serializable payload. Canonical names live in `crates/amplifier-core/src/events.rs` and Python `amplifier_core.events`; the most common are `execution:start`, `execution:end`, `session:start`, `session:end`, `session:fork`, `llm:request`, `llm:response`, `tool:pre`, `tool:post`, `tool:error`, `context:pre_compact`, `context:post_compact`, `orchestrator:complete`. Use the constants, not string literals.
 

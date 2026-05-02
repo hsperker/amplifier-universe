@@ -398,6 +398,8 @@ packages = ["amplifier_module_tool_delegate"]
 
 The two pieces that matter for discovery:
 
+These three names — **module ID**, **package name**, **import path** — derive from the same logical name; mismatches are the most common silent failure when publishing a module.
+
 - **The group: `amplifier.modules`.** This is the well-known group name foundation scans. Any package that registers an entry point under this group is a candidate module.
 - **The key: `tool-delegate`.** This is the *module ID* — what bundles reference. It must match the ID used in bundle YAML (`module: tool-delegate`).
 - **The value: `amplifier_module_tool_delegate:mount`.** Importable path to the `mount` function.

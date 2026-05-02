@@ -53,8 +53,6 @@ async with await prepared.create_session() as session:
     print(await session.execute("Hello!"))
 ```
 
-Everything in Chapter 2 explains one of those four lines.
-
 ---
 
 ## 2.2 Bundle anatomy
@@ -265,7 +263,7 @@ When the registry loads a bundle, it asks: "is there a `bundle.md` or `bundle.ya
 
 The practical implication: `behaviors/recipes.yaml` inside `amplifier-bundle-recipes` is a *nested* bundle. When loaded, it does **not** register a fresh `recipes-behavior` namespace at the registry root — it shares the `recipes` namespace established by the repo's `/bundle.md`. Path lookups from inside it resolve relative to its own location (`behaviors/`), not the repo root.
 
-Confused yet? The "structural vs conventional" distinction (CONCEPTS.md §Structural vs Conventional) is the cleanest mental model:
+The cleanest mental model is the structural-vs-conventional distinction:
 
 - **Structural** = how the loader sees it (`is_root=True/False`).
 - **Conventional** = how authors organize a repo (root-bundle vs standalone-bundle vs behavior-bundle).
@@ -354,6 +352,8 @@ Internally `prepare()` does, in order:
 2. **Module activation.** Walks the Mount Plan (`session.orchestrator`, `session.context`, every `providers/tools/hooks` entry, plus modules referenced by `agents`) and activates each — cloning git sources, installing the module's `pyproject.toml` with `--no-sources`, and recording the path on disk.
 3. **Resolver construction.** Builds a `BundleModuleResolver` that maps `module_id → activated path`. This resolver implements the kernel's `ModuleSourceResolver` protocol (Chapter 1 §protocols).
 4. **Returns `PreparedBundle`.** Holds `mount_plan`, `resolver`, the original `bundle`, and the list of bundle-package source roots that need to be on `sys.path`.
+
+`source_resolver` is the optional `prepare()` callback that lets the app layer override how module sources are fetched (e.g. swap remote URLs for local mirrors).
 
 `PreparedBundle.create_session()` is the turn-key call:
 
@@ -551,6 +551,8 @@ For the runtime details after `create_session()` (orchestrator loop, hook events
 7. Given `git+https://github.com/microsoft/amplifier-bundle-recipes@main#subdirectory=behaviors/recipes.yaml`, what is the namespace registered when this bundle loads, and why is it not `recipes-behavior` despite `bundle.name: recipes-behavior` in that YAML?
 
 8. You replace `await bundle.prepare()` with `bundle.to_mount_plan()` and pass the dict to `AmplifierSession` directly. What breaks, and why?
+
+---
 
 ### Hints / answers
 
