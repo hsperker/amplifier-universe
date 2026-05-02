@@ -95,7 +95,7 @@ An auto-loaded `AGENTS.md` file (searched at `~/.amplifier/`, `.amplifier/`, the
 
 ### The Context sink pattern
 
-Heavy documentation is a tax on every session that loads it. A 4,600-token `MODULES.md` referenced eagerly from `bundle.md` consumes those tokens whether or not the user ever asks about modules. Long sessions run out of context window faster, sub-agent spawns inherit the bloat, and the LLM gets distracted by knowledge it does not need.
+Heavy documentation is a tax on every session that loads it. A 4,600-token `MODULES.md` referenced eagerly from `bundle.md` consumes those tokens whether or not the user ever asks about modules. Long sessions run out of context window faster, sub-agent spawns inherit the bloat, and the LLM gets distracted by knowledge it does not need. Foundation's `context/CONTEXT_POISONING.md` names the failure mode **context poisoning**: the symptom is that the model starts confidently using stale, irrelevant, or contradictory information from the always-loaded context — and once an LLM is poisoned in a session, the cheapest recovery is usually a fresh session, not a longer prompt.
 
 The fix is the **context sink pattern**: heavy documentation lives inside an *expert agent*, not in always-loaded context. The root session gets a thin awareness pointer (~25–40 lines) that says "this domain exists, delegate to `foundation:foundation-expert` for it." When the user actually asks about it, the agent spawns, the heavy docs load into the *agent's* sub-session, and the parent stays lean.
 
