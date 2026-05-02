@@ -1,0 +1,107 @@
+============ STEP 1: base + b2 (ADD tool) ============
+--- base.compose(b2) ---
+name: add-tool
+instruction: 'You are a probe-a session.'
+providers:
+[
+  {
+    "module": "provider-stub",
+    "config": {
+      "latency_ms": 10
+    }
+  }
+]
+tools:
+[
+  {
+    "module": "tool-noop",
+    "config": {
+      "flag": true
+    }
+  }
+]
+
+OK: tool-noop appended.
+
+============ STEP 2: r1 + b3 (REPLACE instruction) ============
+--- r1.compose(b3) ---
+name: replace-instr
+instruction: 'REPLACED instruction body.'
+providers:
+[
+  {
+    "module": "provider-stub",
+    "config": {
+      "latency_ms": 10
+    }
+  }
+]
+tools:
+[
+  {
+    "module": "tool-noop",
+    "config": {
+      "flag": true
+    }
+  }
+]
+
+OK: instruction replaced.
+
+============ STEP 3: r2 + b4 (SAME provider module, diff config) ============
+--- r2.compose(b4) ---
+name: prov-overlay
+instruction: 'REPLACED instruction body.'
+providers:
+[
+  {
+    "module": "provider-stub",
+    "config": {
+      "latency_ms": 250,
+      "extra": "x"
+    }
+  }
+]
+tools:
+[
+  {
+    "module": "tool-noop",
+    "config": {
+      "flag": true
+    }
+  }
+]
+
+provider-stub entries count: 1
+merged config: {'latency_ms': 250, 'extra': 'x'}
+OK: configs deep-merged (no duplicate entry).
+
+============ STEP 4: ordering + 'later wins' for instruction ============
+--- r3.compose(b5 with None instr) ---
+name: no-instr
+instruction: 'REPLACED instruction body.'
+providers:
+[
+  {
+    "module": "provider-stub",
+    "config": {
+      "latency_ms": 250,
+      "extra": "x"
+    }
+  }
+]
+tools:
+[
+  {
+    "module": "tool-noop",
+    "config": {
+      "flag": true
+    }
+  }
+]
+
+instruction unchanged: True
+
+compose with empty-string instruction:
+instruction unchanged: True
+instruction value: 'REPLACED instruction body.'

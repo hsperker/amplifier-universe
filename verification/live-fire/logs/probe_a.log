@@ -1,0 +1,44 @@
+Loading: /home/user/amplifier-universe/verification/live-fire/probe_a/my-bundle.md
+
+=== Bundle (after load_bundle) ===
+type: Bundle
+name: probe-a
+version: 0.0.1
+description: 
+instruction: 'You are a probe-a session.'
+session: {'orchestrator': {'module': 'loop-basic'}, 'context': {'module': 'context-simple'}}
+providers: [{'module': 'provider-stub'}]
+tools: []
+hooks: []
+agents: {}
+context: {}
+includes: []
+base_path: /home/user/amplifier-universe/verification/live-fire/probe_a
+source_base_paths: {}
+dataclass keys: ['name', 'version', 'description', 'includes', 'session', 'providers', 'tools', 'hooks', 'spawn', 'agents', 'context', 'instruction', 'base_path', 'source_base_paths', '_pending_context', '_provenance', '_source_uri']
+
+=== to_mount_plan() ===
+has to_mount_plan: True
+Mount Plan keys: ['providers', 'session']
+Mount Plan JSON:
+{
+  "session": {
+    "orchestrator": {
+      "module": "loop-basic"
+    },
+    "context": {
+      "module": "context-simple"
+    }
+  },
+  "providers": [
+    {
+      "module": "provider-stub"
+    }
+  ]
+}
+
+=== prepare() ===
+PreparedBundle type: PreparedBundle
+PreparedBundle attrs: ['bundle', 'bundle_package_paths', 'create_session', 'mount_plan', 'resolver', 'spawn']
+mount_plan: {'session': {'orchestrator': {'module': 'loop-basic'}, 'context': {'module': 'context-simple'}}, 'providers': [{'module': 'provider-stub'}]}
+resolver: <amplifier_foundation.bundle._prepared.BundleModuleResolver object at 0x7ff7f8ce3ed0>

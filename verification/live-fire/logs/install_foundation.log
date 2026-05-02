@@ -1,0 +1,57 @@
+Obtaining file:///home/user/amplifier-universe/amplifier-foundation
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Collecting amplifier-core>=1.0.10 (from amplifier-foundation==1.0.0)
+  Downloading amplifier_core-1.4.1-cp311-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (12 kB)
+Collecting pyyaml>=6.0.3 (from amplifier-foundation==1.0.0)
+  Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting click>=8.3.1 (from amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading click-8.3.3-py3-none-any.whl.metadata (2.6 kB)
+Collecting pydantic>=2.0 (from amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading pydantic-2.13.3-py3-none-any.whl.metadata (108 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 108.8/108.8 kB 21.6 MB/s eta 0:00:00
+Collecting tomli>=2.0 (from amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading tomli-2.4.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10 kB)
+Collecting typing-extensions>=4.0 (from amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting annotated-types>=0.6.0 (from pydantic>=2.0->amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.46.3 (from pydantic>=2.0->amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading pydantic_core-2.46.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+Collecting typing-inspection>=0.4.2 (from pydantic>=2.0->amplifier-core>=1.0.10->amplifier-foundation==1.0.0)
+  Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+Downloading amplifier_core-1.4.1-cp311-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (8.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.5/8.5 MB 68.4 MB/s eta 0:00:00
+Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 74.9 MB/s eta 0:00:00
+Downloading click-8.3.3-py3-none-any.whl (110 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 110.5/110.5 kB 31.6 MB/s eta 0:00:00
+Downloading pydantic-2.13.3-py3-none-any.whl (471 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 472.0/472.0 kB 76.7 MB/s eta 0:00:00
+Downloading pydantic_core-2.46.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 79.1 MB/s eta 0:00:00
+Downloading tomli-2.4.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (243 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.8/243.8 kB 48.3 MB/s eta 0:00:00
+Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 15.3 MB/s eta 0:00:00
+Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+Building wheels for collected packages: amplifier-foundation
+  Building editable for amplifier-foundation (pyproject.toml): started
+  Building editable for amplifier-foundation (pyproject.toml): finished with status 'done'
+  Created wheel for amplifier-foundation: filename=amplifier_foundation-1.0.0-py3-none-any.whl size=5783 sha256=2cce1b2be1413fec5871816aa283497a7ce745473f09464e43992402473990ee
+  Stored in directory: /tmp/pip-ephem-wheel-cache-rpei7zgs/wheels/34/6c/d9/7d3d855bb78a26b99ebb55141357cf6a9f1c64a4822c3b3626
+Successfully built amplifier-foundation
+Installing collected packages: typing-extensions, tomli, pyyaml, click, annotated-types, typing-inspection, pydantic-core, pydantic, amplifier-core, amplifier-foundation
+Successfully installed amplifier-core-1.4.1 amplifier-foundation-1.0.0 annotated-types-0.7.0 click-8.3.3 pydantic-2.13.3 pydantic-core-2.46.3 pyyaml-6.0.3 tomli-2.4.1 typing-extensions-4.15.0 typing-inspection-0.4.2
+
+[notice] A new release of pip is available: 24.0 -> 26.1
+[notice] To update, run: python3 -m pip install --upgrade pip

@@ -442,6 +442,7 @@ Once those are satisfied, `amplifier bundle add` of any bundle that lists your m
 - **The module ID and the package name are not the same string.** The ID is the entry-point key, not the package name. Mismatches cause silent "module not found" errors.
 - **Module type prefix matters by convention only.** The kernel does not enforce that `tool-foo` registers a tool — it would happily mount whatever `mount()` does. The prefix is a contract with users, not the kernel.
 - **`amplifier source show <id>`** is the diagnostic command when a module is not behaving as expected — it shows where the module is being resolved from across all scopes.
+- **`ModuleLoader.discover()` is `async`.** If you reach for it directly in a script — `for m in loader.discover():` — you will hit `TypeError: 'coroutine' object is not iterable`. Use `async for m in loader.discover():` (or `await loader.discover()` and iterate the result, depending on the version's signature). The CLI hides this; module-development scripts do not.
 
 **Related.** Mount Plan and the `mount(coordinator, config)` signature are kernel concerns (Chapter 1). Bundle YAML's `module:` and `source:` fields are composition concerns (Chapter 2).
 
@@ -475,6 +476,33 @@ When loading a module, the runtime walks six layers in order; the first match wi
 - `create` — scaffold a new module package.
 
 Layer 2 of the resolution order picks workspace-linked modules up automatically, so changes are seen immediately on the next `amplifier run`.
+
+### Testing a module in isolation
+
+Module unit tests do not need a live LLM, a real session, or even `amplifier-core` — only `amplifier-foundation` for `ToolResult`. The pattern is to mount under a stub coordinator that records what was registered. A minimal test for a Tool:
+
+```python
+# tests/test_tool_now.py
+import asyncio
+from amplifier_module_tool_now import mount
+
+class StubCoordinator:
+    def __init__(self):
+        self.mounted = {}
+
+    async def mount(self, mount_point, instance, name=None):
+        self.mounted.setdefault(mount_point, {})[name or instance.name] = instance
+
+def test_now_returns_iso_string():
+    coordinator = StubCoordinator()
+    asyncio.run(mount(coordinator, config={}))
+    tool = coordinator.mounted["tools"]["now"]
+    result = asyncio.run(tool.execute({}))
+    assert "now" in result.output
+    assert result.error is None
+```
+
+Two principles. First, the coordinator surface a `mount()` function actually uses is small — `mount(point, instance, name=...)` plus `register_cleanup()` in some cases — so a stub takes ten lines. Second, run the test with `pytest tests/` from the module repo; no Amplifier CLI, no kernel install, no API key. This is what `amplifier module dev test` runs under the hood.
 
 ---
 
