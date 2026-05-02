@@ -1,0 +1,25 @@
+=== Step 1: entry-point discovery via importlib.metadata ===
+All amplifier.modules entry points: ['tool-noop']
+OK: tool-noop discovered.
+
+=== Step 2: kernel ModuleLoader.discover() ===
+Discovered modules: ['tool-noop']
+tool-noop ModuleInfo:
+  type: tool
+  mount_point: tools
+  description: Module: tool-noop
+
+=== Step 3: Load + mount tool-noop via the kernel loader ===
+loader.load returned: function
+mount_fn result: None
+
+=== Step 4: coordinator.get('tools', name='noop') ===
+coordinator.get returned: NoopTool
+tool.execute({}) -> {'ok': True}
+OK: end-to-end mount + execute works.
+
+=== Step 5: Try AmplifierSession with a Mount Plan ===
+Mount Plan: {'session': {'orchestrator': {'module': 'loop-basic'}, 'context': {'module': 'context-simple'}}, 'tools': [{'module': 'tool-noop'}]}
+AmplifierSession constructed: AmplifierSession
+Failed to load module 'loop-basic': Module 'loop-basic' not found via entry points or filesystem
+session.initialize() failed: RuntimeError Cannot initialize without orchestrator: Module 'loop-basic' not found via entry points or filesystem

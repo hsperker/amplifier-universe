@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amplifier-module-tool-noop"
+version = "0.0.1"
+description = "Tiny no-op tool for verification"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.entry-points."amplifier.modules"]
+tool-noop = "amplifier_module_tool_noop:mount"
+
+[tool.hatch.build.targets.wheel]
+packages = ["amplifier_module_tool_noop"]

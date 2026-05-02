@@ -1,0 +1,22 @@
+Obtaining file:///home/user/amplifier-universe/verification/live-fire/probe_c/amplifier-module-tool-noop
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: amplifier-module-tool-noop
+  Building editable for amplifier-module-tool-noop (pyproject.toml): started
+  Building editable for amplifier-module-tool-noop (pyproject.toml): finished with status 'done'
+  Created wheel for amplifier-module-tool-noop: filename=amplifier_module_tool_noop-0.0.1-py3-none-any.whl size=1503 sha256=2277afa94ef09c7416860817f0a51690af77d2b893ec9fa4b1f4fed954f3410e
+  Stored in directory: /tmp/pip-ephem-wheel-cache-md2xvh9h/wheels/6d/01/25/608d12b62ee467475bf2d164dcde356c8ac876ea087aa5cb35
+Successfully built amplifier-module-tool-noop
+Installing collected packages: amplifier-module-tool-noop
+Successfully installed amplifier-module-tool-noop-0.0.1
+
+[notice] A new release of pip is available: 24.0 -> 26.1
+[notice] To update, run: python3 -m pip install --upgrade pip
