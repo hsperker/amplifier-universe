@@ -1,6 +1,6 @@
 # Chapter 3 — Authoring Artifacts
 
-Bundles are the container; this chapter teaches what you put inside one. Chapter 1 explained how the kernel mounts modules and Chapter 2 explained how `compose()`, `includes`, namespaces, and `@mentions` glue partial bundles into a complete mount plan. Here you learn the *content* a bundle ships: agents, behaviors, instructions and context, recipes, and skills. By the end of this chapter you should be able to read any agent file in `amplifier-foundation/agents/` and explain every frontmatter field, decide whether a new capability should be an agent, a behavior, a recipe, or a skill, and write a small but well-formed example of each.
+This chapter teaches the content a bundle ships: agents, behaviors, instructions and context, recipes, and skills. Chapters 1 and 2 covered the kernel and the composition machinery; this chapter is what you actually write inside a bundle.
 
 ## Concepts covered
 
@@ -444,7 +444,7 @@ This distinction is small but important. From `POLICY_BEHAVIORS.md`:
 | Examples | Logging, redaction, agents, tools | Notifications, cost alerts, session limits |
 | Configured in | Bundle YAML | App `settings.yaml` (under `config:`) |
 
-A **bundle behavior** is what we have been describing — declared in a bundle, applies wherever that bundle composes. `behaviors/agents.yaml` is a bundle behavior: every sub-agent should inherit delegation instructions.
+A **bundle behavior** is what this section has described — declared in a bundle, applies wherever that bundle composes. `behaviors/agents.yaml` is a bundle behavior: every sub-agent should inherit delegation instructions.
 
 A **policy behavior** is structurally identical (a YAML file with `tools`/`hooks`/etc.) but is *not* included by any bundle. Instead, the *app* (the CLI or service that hosts Amplifier) composes it into the mount plan at runtime, only for root sessions, based on user configuration in `settings.yaml`.
 
@@ -754,4 +754,4 @@ Try answering these without scrolling back. They cover authoring decisions and f
 
 ---
 
-If you can answer all eight, you have what you need to author a small but well-formed agent and behavior, and to read any artifact in `amplifier-foundation/agents/` or `amplifier-foundation/behaviors/` and explain its parts. Chapter 4 picks up where this leaves off: the CLI commands that run, validate, and inspect the artifacts you have learned to write.
+Chapter 4 picks up where this leaves off: the CLI commands that run, validate, and inspect the artifacts you have learned to write.
