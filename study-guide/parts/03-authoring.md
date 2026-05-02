@@ -91,6 +91,8 @@ A **context file** is just a markdown file referenced from a bundle. There are t
 
 Use `context.include` in `behaviors/*.yaml`. Use `@mentions` in `bundle.md` and in `agents/*.md`.
 
+An auto-loaded `AGENTS.md` file (searched at `~/.amplifier/`, `.amplifier/`, then repo root) lets agents persist learned context across sessions — see the glossary entry "AGENTS.md anchor file."
+
 ### The Context sink pattern
 
 Heavy documentation is a tax on every session that loads it. A 4,600-token `MODULES.md` referenced eagerly from `bundle.md` consumes those tokens whether or not the user ever asks about modules. Long sessions run out of context window faster, sub-agent spawns inherit the bloat, and the LLM gets distracted by knowledge it does not need.
@@ -127,6 +129,10 @@ The doc puts the rule sharply: *"Anti-Pattern: Heavy Context in Behaviors. Heavy
 > **Key insight from `AGENT_AUTHORING.md`:** *Agents ARE bundles.* Same file format. Same `load_bundle()` call. The only difference is that the frontmatter root key is `meta:` rather than `bundle:`, and the required fields are `name` and `description` instead of `name` and `version`.
 
 An **Agent** is a bundle scoped to run as a sub-session for a focused task. A coordinator (or the `tool-task` / `tool-delegate` tool) spawns it, the agent burns its own context window doing work, and only its final response returns to the parent. Because it is a bundle, everything you learned in Chapter 2 applies: it has frontmatter, an instruction body, can declare its own `tools:` and `provider_preferences:`, and supports `@mentions`.
+
+### The Delegation Imperative — "Orchestrator, not worker"
+
+Foundation's operating-mode slogan is direct: the main session orchestrates, agents execute. From `delegation-instructions.md`: *"Delegation is not optional — it is the PRIMARY operating mode."* Direct tool use (file reads, grep, bash) should be rare; agent dispatch is the default. Every direct tool call burns parent-session tokens that an agent could have absorbed inside its own context window. Author agents under that assumption.
 
 ### Why agents exist
 
@@ -351,6 +357,8 @@ Behaviors enable the **thin bundle pattern** — most bundles you write should b
 - Has at least one of: `tools`, `agents.include`, `context.include`, `hooks`, `includes`.
 - Does **not** have a markdown body. Pure YAML.
 
+> **Iron Law of `mount()`.** Any module a behavior wires in MUST register on the coordinator or return a Tool from its `mount()`. No-op stubs fail `protocol_compliance` validation — see the glossary entry.
+
 ### A worked example
 
 `amplifier-foundation/behaviors/agents.yaml` is the canonical "complete" behavior — it ships a tool, configures it, declares the agents the tool can spawn, and adds delegation instructions:
@@ -533,6 +541,39 @@ The child agent inherits `tool-filesystem`, `tool-bash`, `tool-search`, etc., bu
 Agents can also declare their own `tools:` block (you saw this in `bug-hunter.md` in 3.3). When an agent is spawned, the inheritance policy combines with the agent's own declarations: the agent's declared tools are mounted, plus whatever the parent's spawn policy allows. If you want an agent to have a *narrower* tool surface than the parent, declare its tools explicitly and rely on the inheritance policy to pass through nothing extra.
 
 **Related**: Chapter 2 (composition); 3.3 Agents (per-agent `tools:` declarations); Chapter 4 §4.5 (plan mode).
+
+### Context inheritance: `context_depth` × `context_scope`
+
+`tool-delegate` controls what a child agent inherits from its parent's conversation through two orthogonal parameters (see the glossary entry):
+
+- `context_depth ∈ {none, recent, all}` — *how much* parent history the child sees.
+- `context_scope ∈ {conversation, agents, full}` — *which content* is included (user/assistant text only, plus delegate/task results, or every tool result).
+
+The 3×3 mental model:
+
+|                   | `conversation`            | `agents`                     | `full`                                |
+|-------------------|---------------------------|------------------------------|---------------------------------------|
+| `none`            | clean slate               | clean slate                  | clean slate                           |
+| `recent` (default `recent`/`conversation`) | last N user/assistant turns | + recent agent results | + all recent tool output |
+| `all`             | full chat history         | + every agent result         | full transcript including tool output |
+
+Example invocation (sketch from `modules/tool-delegate/README.md`):
+
+```python
+delegate(
+    agent="foundation:explorer",
+    instruction="Map the auth subsystem and return file:line entry points.",
+    context_depth="recent",     # default
+    context_turns=5,
+    context_scope="conversation",  # default — strip tool noise
+)
+```
+
+**Default and when to deviate.** The defaults (`context_depth="recent"`, `context_scope="conversation"`) are right for most one-shot delegations: the agent gets enough chat history to know the user's intent, no tool spam. Move to `context_scope="agents"` when the child needs prior delegate results (chained agent pipelines); `context_scope="full"` when the child needs raw tool output the parent already gathered. Move to `context_depth="all"` only when the child genuinely needs full history — it doubles token cost.
+
+### Self-delegation
+
+`agent="self"` spawns the current agent as a sub-agent with a fresh context window — used for token-budget relief on long iterative tasks. The recommended pairing is `context_depth="all"`, `context_scope="full"` so the sub-instance inherits everything the parent has accumulated and does not redo work. From `multi-agent-patterns.md`: the parent returns a tight summary, freeing its own context window. Use it when a session is degrading from context fill, not as a routine pattern.
 
 ## 3.7 Recipes
 

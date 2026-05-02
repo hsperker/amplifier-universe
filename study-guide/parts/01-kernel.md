@@ -62,7 +62,7 @@ from amplifier_core import CancellationToken  # → RustCancellationToken
 from amplifier_core import RUST_AVAILABLE     # bool
 ```
 
-Submodule imports (e.g. `from amplifier_core.coordinator import ModuleCoordinator`) currently re-export the same Rust-backed types under the old paths for compatibility. The Pythonic API surface — `async with`, `await`, dicts, Pydantic models — is identical regardless of where the implementation lives. Data crosses the boundary as JSON: Rust uses `#[serde(rename_all = "snake_case")]`; Python uses `Literal[...]` strings and Pydantic `BaseModel`s with matching field names. See `CONTRACTS.md` for the full type-mapping table.
+Submodule imports (e.g. `from amplifier_core.coordinator import ModuleCoordinator`) return the **Python** implementations for backward compatibility — only top-level imports return Rust-backed types. The Pythonic API surface — `async with`, `await`, dicts, Pydantic models — is identical regardless of where the implementation lives. Data crosses the boundary as JSON: Rust uses `#[serde(rename_all = "snake_case")]`; Python uses `Literal[...]` strings and Pydantic `BaseModel`s with matching field names. See `CONTRACTS.md` for the full type-mapping table.
 
 You do not need to know Rust to write modules. You do need to know that the boundary exists, because: (1) error types may be richer on the Rust side than the Python catch-all suggests, (2) some Python-only utilities (`ModuleLoader`, `ApprovalSystem`, `DisplaySystem`, the validation framework) still live in `python/amplifier_core/` and are *not* mirrored in Rust, and (3) the `Rust*`-prefixed names (`RustSession`, etc.) remain available as explicit aliases.
 
@@ -182,6 +182,8 @@ It exists so the kernel can be agnostic about config sources and merging policy.
 
 Each entry under `providers`, `tools`, `hooks` is a dict with a required `module` (the Module ID), an optional `source` (a URI like `git+https://...@ref`, `file:///...`, or a package name), and an optional module-specific `config`. The `agents` section is special: it holds *partial* Mount Plans used as overlays when forking child sessions, and is **not** mounted at session-init time. See `Chapter 3` for how agents use it.
 
+The `session` section also accepts two budget keys that cap hook context injection: `session.injection_budget_per_turn` (default 10 000 tokens per turn) and `session.injection_size_limit` (default 10 KB per single injection). See the glossary entry "Injection budgets".
+
 Use `MountPlanValidator` for structural validation before construction:
 
 ```python
@@ -212,7 +214,7 @@ async def mount(coordinator, config):
 
 The `mount()` free function (no `self`) is the contract. The kernel calls it once per module, in phase order (orchestrator → context → providers → tools → hooks). Its return value is interpreted as follows (from `CONTRACTS.md`): a callable becomes the cleanup; `None` means no cleanup; non-callables are silently ignored. Cleanups run in reverse registration order at session teardown.
 
-There's a second optional lifecycle hook, `on_session_ready(coordinator)`, that runs *after every module across all phases has mounted*. Use it when a module needs the fully composed coordinator (e.g. to discover hooks contributed by peers). It is Python-only and its return value is ignored — register cleanups directly via `coordinator.register_cleanup()`.
+There's a second optional lifecycle hook, `on_session_ready(coordinator)`, that runs *after every module across all phases has mounted*. Use it when a module needs the fully composed coordinator (e.g. to discover hooks contributed by peers). It is Python-only and its return value is ignored — register cleanups directly via `coordinator.register_cleanup()`. Two footguns to know: the kernel enforces **no timeout** on these callbacks (a hanging callback hangs the session), and the polyglot transports (gRPC, wasm, native Rust) skip this wave entirely. The only observable signal of a callback failure is the `module:on_session_ready_failed` event — the WARNING log alone is invisible to hooks.
 
 **Related**: Module ID (below), Coordinator (§1.2).
 
@@ -266,7 +268,7 @@ coordinator.register_capability("my_module.search_tool", search_tool)
 search_tool = coordinator.get_capability("my_module.search_tool")  # may be None
 ```
 
-Use it sparingly. The canonical use is in `on_session_ready()` after the full mount wave, paired with closure-captured state inside `mount()`. Capability names are conventionally namespaced (`<module>.<thing>`).
+Use it sparingly. The canonical use is in `on_session_ready()` after the full mount wave, paired with closure-captured state inside `mount()`. Capability names are conventionally namespaced (`<module>.<thing>`). A canonical use is app↔module IoC — the CLI registers `session.spawn` so any module that needs to start a child session can request it via the coordinator. See `amplifier-core/docs/CAPABILITY_REGISTRY.md`.
 
 > Note: there is also a *static* notion of capability — strings like `tools.streaming` advertised by providers in `ProviderInfo.capabilities` and used for routing. That is different from the runtime registry described here; see `docs/specs/PROVIDER_SPECIFICATION.md` for the static taxonomy.
 
@@ -274,7 +276,7 @@ Use it sparingly. The canonical use is in `on_session_ready()` after the full mo
 
 ### Session forking (`parent_id`)
 
-Forking creates a child session linked to a parent by ID. The kernel mechanism is one parameter — `parent_id` — and one event — `session:fork`. There is nothing else.
+Forking creates a child session linked to a parent by ID. The kernel mechanism is one parameter — `parent_id` — and one event — `session:fork`. (The `session:fork` payload also carries a redundant `data.parent` field for compatibility — see `SESSION_FORK_SPECIFICATION.md`.) That is the entirety of the kernel surface.
 
 ```python
 child = AmplifierSession(
@@ -294,7 +296,7 @@ What the kernel guarantees (from `SESSION_FORK_SPECIFICATION.md`): every event t
 
 ### Hook (runtime), HookResult, Event
 
-An **Event** is a named lifecycle moment with a JSON-serializable payload. Canonical names live in `crates/amplifier-core/src/events.rs` and Python `amplifier_core.events`; the most common are `execution:start`, `execution:end`, `session:start`, `session:end`, `session:fork`, `llm:request`, `llm:response`, `tool:pre`, `tool:post`, `tool:error`, `context:pre_compact`, `context:post_compact`, `orchestrator:complete`. Use the constants, not string literals.
+An **Event** is a named lifecycle moment with a JSON-serializable payload. Canonical names live in `crates/amplifier-core/src/events.rs` and Python `amplifier_core.events`; the most common are `execution:start`, `execution:end`, `session:start`, `session:end`, `session:fork`, `llm:request`, `llm:response`, `tool:pre`, `tool:post`, `tool:error`, `context:pre_compact`, `context:post_compact`, `context:compaction` (combined form — older code may emit either flavor), `orchestrator:complete`. Use the constants, not string literals.
 
 A **Hook** at runtime is a registered handler for a specific event name. Handlers are async callables `async (event: str, data: dict[str, Any]) -> HookResult`. Registration:
 
@@ -327,7 +329,7 @@ class HookResult(BaseModel):
     append_to_last_tool_result: bool = False
 ```
 
-**Action precedence** when multiple handlers fire on the same event (highest first): `deny` (1, short-circuits) → `ask_user` (2, blocks for approval) → `inject_context` (3, multiple results merge) → `modify` (4, data chains through) → `continue` (5, default). Blocking actions always beat non-blocking ones, so a security gate cannot be silently bypassed by a context-injecting peer.
+**Action precedence** when multiple handlers fire on the same event (highest first): `deny` (1, short-circuits) → `ask_user` (2, blocks for approval) → `inject_context` (3, multiple results merge) → `modify` (4, data chains through) → `continue` (5, default). Blocking actions always beat non-blocking ones, so a security gate cannot be silently bypassed by a context-injecting peer. Multiple `inject_context` results merge — settings (role, ephemeral, suppress_output) come from the first.
 
 The kernel emits standard events; orchestrators emit `execution:*`, `provider:*`, `tool:*`, `orchestrator:complete`; modules may register custom events through the contribution channel `"observability.events"` so dashboards and tooling can discover them. The full reference is `docs/HOOKS_API.md`.
 

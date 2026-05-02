@@ -355,6 +355,19 @@ Internally `prepare()` does, in order:
 
 `source_resolver` is the optional `prepare()` callback that lets the app layer override how module sources are fetched (e.g. swap remote URLs for local mirrors).
 
+### Source-override resolution order
+
+The runtime walks six layers in order to find a module's source; the first match wins. From `amplifier/docs/LOCAL_DEVELOPMENT.md`:
+
+1. Environment variable `AMPLIFIER_MODULE_<MODULE_ID>=<path>`.
+2. Workspace `.amplifier/modules/<module-id>/`.
+3. Project `.amplifier/settings.yaml`.
+4. User `~/.amplifier/settings.yaml`.
+5. Bundle `source:` field.
+6. Installed package entry point.
+
+This is the precedence the app layer (`Chapter 4`) and `source_resolver` callbacks operate against; bundle authors mostly see layer 5, but a debugging session that bypasses the bundle's pinned `source:` is almost always working through layers 1–4.
+
 `PreparedBundle.create_session()` is the turn-key call:
 
 ```python
@@ -396,6 +409,7 @@ Apps that need to surface available updates use `registry.get_state(name)` and `
 - **Caches are not refreshed automatically.** Registry caches by URI. To pick up upstream changes, you must invalidate the cache (delete the cloned repo) or pin to a SHA and bump it.
 - **`source_resolver` is the override seam.** Apps that need to redirect a module's `source:` (e.g., a local fork) pass a `source_resolver` callback to `prepare()`. The bundle does not know it's being overridden.
 - **Module dependencies install with `--no-sources`.** Any `[tool.uv.sources]` overrides in a module's `pyproject.toml` are silently stripped during activation. If your modules need shared code, use the root-package pattern (BUNDLE_GUIDE.md §Root Python Package), not `[tool.uv.sources]`.
+- **Cache lives on the user side.** The resolved package lives under `~/.amplifier/cache/`; never delete this directory directly — see Chapter 4 §4.1 and `amplifier reset`.
 
 ---
 
