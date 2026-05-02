@@ -554,7 +554,7 @@ The 3×3 mental model:
 |                   | `conversation`            | `agents`                     | `full`                                |
 |-------------------|---------------------------|------------------------------|---------------------------------------|
 | `none`            | clean slate               | clean slate                  | clean slate                           |
-| `recent` (default `recent`/`conversation`) | last N user/assistant turns | + recent agent results | + all recent tool output |
+| `recent`          | last N user/assistant turns | + recent agent results       | + all recent tool output              |
 | `all`             | full chat history         | + every agent result         | full transcript including tool output |
 
 Example invocation (sketch from `modules/tool-delegate/README.md`):
