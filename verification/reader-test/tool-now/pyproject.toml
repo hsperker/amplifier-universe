@@ -1,0 +1,20 @@
+[project]
+name = "amplifier-module-tool-now"
+version = "0.1.0"
+description = "Returns the current UTC time as ISO-8601."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["amplifier-core>=1.2.1"]
+
+# Discovered by amplifier-foundation's resolver under the well-known
+# `amplifier.modules` group. Key = module ID, value = importable mount fn.
+# (Study guide: Chapter 4 §4.8.)
+[project.entry-points."amplifier.modules"]
+tool-now = "amplifier_module_tool_now:mount"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["amplifier_module_tool_now"]

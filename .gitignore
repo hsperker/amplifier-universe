@@ -1,0 +1,6 @@
+
+# Live-fire verification venv (do not commit installed packages)
+verification/live-fire/.venv/
+verification/**/__pycache__/
+verification/**/*.egg-info/
+verification/**/.pytest_cache/
