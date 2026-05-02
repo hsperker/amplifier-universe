@@ -1,9 +1,12 @@
 [submodule "amplifier-core"]
 	path = amplifier-core
 	url = https://github.com/microsoft/amplifier-core
+	branch = main
 [submodule "amplifier-foundation"]
 	path = amplifier-foundation
 	url = https://github.com/microsoft/amplifier-foundation
+	branch = main
 [submodule "amplifier"]
 	path = amplifier
 	url = https://github.com/microsoft/amplifier
+	branch = main
