@@ -4,7 +4,7 @@
 
 ## Concepts covered
 
-- **Bundle** and its nine sections (`bundle`, `session`, `providers`, `tools`, `hooks`, `agents`, `context`, `instruction`, `spawn`)
+- **Bundle** and its ten sections (`bundle`, `includes`, `session`, `providers`, `tools`, `hooks`, `agents`, `context`, `instruction`, `spawn`)
 - **Compose** (`base.compose(overlay)`) and per-section merge rules
 - **Includes** (`includes:`)
 - **Prepare** / **PreparedBundle**
@@ -109,7 +109,7 @@ Body becomes the system instruction. Reference docs with @mentions:
 
 ### Section reference
 
-The frontmatter has nine recognized sections. Eight populate the Bundle dataclass directly; `includes:` is consumed by the loader.
+The frontmatter has ten recognized sections. Nine populate the Bundle dataclass directly; `includes:` is consumed by the loader.
 
 | Section       | Type                    | Goes to Mount Plan? | Purpose |
 |---------------|-------------------------|---------------------|---------|
@@ -155,7 +155,7 @@ result = base.compose(overlay)        # overlay overrides base
 result = base.compose(o1, o2, o3)     # equivalent to ((base + o1) + o2) + o3
 ```
 
-The merge rule is per-section. There are three:
+The merge rules are per-section:
 
 | Section         | Rule                  | Effect |
 |-----------------|-----------------------|--------|
@@ -304,7 +304,7 @@ There are two reference syntaxes and they have different semantics. Mixing them 
 | Where you write it             | Syntax                  | Composition behavior                                |
 |--------------------------------|-------------------------|-----------------------------------------------------|
 | Markdown body                  | `@namespace:path` (with `@`) | **Replaces** with file content; stays bound to *this* instruction. |
-| YAML `context.include` / `agents.include` | `namespace:path` (no `@`) | **Accumulates** during compose; propagates to including bundles. |
+| YAML `context.include` / `agents.include` | `namespace:path` (no `@`, called a *soft reference*) | **Accumulates** during compose; propagates to including bundles. |
 
 A behavior YAML uses `context.include: [recipes:context/recipe-instructions.md]` because it *wants* its context to flow up to anyone who includes the behavior. A root `bundle.md` uses `@my-bundle:context/instructions.md` in its body because the body is the final instruction and gets *replaced* during compose — `context.include` from a root bundle would propagate further than intended.
 
@@ -337,6 +337,8 @@ from amplifier_foundation import parse_uri
 parse_uri("git+https://github.com/org/repo@main#subdirectory=bundles/dev")
 # ParsedURI(scheme="git+https", host="github.com", path="/org/repo", ref="main", subpath="bundles/dev")
 ```
+
+The `@ref` choice has reproducibility consequences — the **mutable vs immutable refs** distinction: `@main` is *mutable* (moves on every push to that branch), `@v1.2.0` is *semi-stable* (a tag, usually pinned but technically reassignable), and a full SHA is *immutable*. Pin to a tag or SHA in production; reserve `@main` for development.
 
 ### prepare() and PreparedBundle
 

@@ -120,7 +120,7 @@ context:
 
 The doc puts the rule sharply: *"Anti-Pattern: Heavy Context in Behaviors. Heavy docs in behavior context (loads for everyone). Thin pointer in behavior, heavy docs in agent."* When you author a new behavior, ask: *if no one ever delegates to my agent, does my context still earn its tokens?* If not, move it inside the agent.
 
-**Related**: 3.3 Agents (where heavy `@mentions` go); Chapter 2 §2.5 (composition merge rules).
+**Related**: 3.3 Agents (where heavy `@mentions` go); Chapter 2 §2.3 (composition merge rules).
 
 ## 3.3 Agents
 
@@ -532,7 +532,7 @@ The child agent inherits `tool-filesystem`, `tool-bash`, `tool-search`, etc., bu
 
 Agents can also declare their own `tools:` block (you saw this in `bug-hunter.md` in 3.3). When an agent is spawned, the inheritance policy combines with the agent's own declarations: the agent's declared tools are mounted, plus whatever the parent's spawn policy allows. If you want an agent to have a *narrower* tool surface than the parent, declare its tools explicitly and rely on the inheritance policy to pass through nothing extra.
 
-**Related**: Chapter 2 (composition); 3.3 Agents (per-agent `tools:` declarations); Chapter 4 (CLI flags that interact with spawn).
+**Related**: Chapter 2 (composition); 3.3 Agents (per-agent `tools:` declarations); Chapter 4 §4.5 (plan mode).
 
 ## 3.7 Recipes
 

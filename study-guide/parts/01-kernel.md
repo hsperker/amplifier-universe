@@ -110,7 +110,7 @@ async with AmplifierSession(config) as session:
 
 `initialize()` mounts modules per the plan and emits `session:start` (or `session:resume` if `is_resumed=True`); `execute(prompt)` runs the orchestrator; `cleanup()` runs registered cleanups in reverse mount order and emits `session:end`.
 
-**Pitfalls.** Constructing a session without `session.orchestrator` *or* `session.context` in the config raises immediately — these are not optional. Forgetting `await session.initialize()` (when not using `async with`) will produce a "no orchestrator" `RuntimeError` at `execute()` time.
+**Pitfalls.** Constructing a session without `session.orchestrator` *or* `session.context` in the config raises `ValueError` at construction — these are not optional. Forgetting `await session.initialize()` (when not using `async with`) leaves modules unmounted, so `execute()` has no orchestrator to run and fails when it tries to dispatch the turn.
 
 **Related**: Mount Plan (§1.2), Coordinator (below), session forking (§1.2).
 
