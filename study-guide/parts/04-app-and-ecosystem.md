@@ -45,7 +45,7 @@ amplifier run --mode chat                        # explicit chat
 
 **Pitfalls.**
 - **Native Windows shells are not supported.** Use WSL on Windows. The README and onboarding both flag this.
-- **Re-running `amplifier init` does not wipe your existing config** — it edits in place. For a clean reinstall, see `USER_ONBOARDING.md` "Clean Reinstall (Recovery)": `rm -rf ~/.amplifier`, `uv cache clean`, `uv tool uninstall amplifier`, reinstall.
+- **Re-running `amplifier init` does not wipe your existing config** — it edits in place. For a clean reinstall, use `amplifier reset` (interactive) or `amplifier reset --full -y` (non-interactive). **Do not** `rm -rf ~/.amplifier`: `~/.amplifier/cache/` holds editable-install targets that the CLI's site-packages egg-links point to, so deleting it leaves the CLI unable to run any command (including the one that would repopulate it). See `amplifier/context/development-hygiene.md`.
 
 **Related.** `amplifier --install-completion` adds tab completion to bash/zsh/fish. Configuration files live at `~/.amplifier/settings.yaml`, `.amplifier/settings.yaml` (project), `.amplifier/settings.local.yaml` (local override).
 
@@ -133,14 +133,14 @@ amplifier bundle list      # all bundles in the registry
 amplifier bundle current   # the active one (with scope it came from)
 ```
 
-### `amplifier bundle update`
+### `amplifier bundle update` and `bundle refresh`
 
-Refreshes installed bundles to the latest commit on their tracked branch. Tags and SHAs are immutable and never moved.
+These are sibling commands, not one workflow. `bundle update` checks for and applies *new versions* of installed bundles — it walks the registry, surfaces what would change, and applies it on confirm (`USER_GUIDE.md`, `MODULES.md`). `bundle refresh` re-fetches *mutable refs* without bumping the recorded version — it is the right command when you pin to `@main` and want today's commit.
 
 ```bash
-amplifier bundle update --check     # show what would change
-amplifier bundle update             # update with confirmation
-amplifier bundle refresh --mutable-only   # only branches, skip pinned versions
+amplifier bundle update --check            # show what new versions are available
+amplifier bundle update                    # apply with confirmation
+amplifier bundle refresh --mutable-only    # re-pull mutable refs, leave pinned versions alone
 ```
 
 The same idea applies to modules: `amplifier module refresh`, `amplifier module check-updates`. `amplifier update` is the umbrella command that updates the CLI, modules, and bundles together.
@@ -165,6 +165,8 @@ amplifier run --bundle recipes "Generate a release-notes recipe"
 This is heavier than the "minimal" bundle described in some older docs — `foundation` v2 is a development-ready environment in a single bundle. The lighter `minimal.yaml`, `with-anthropic.yaml`, and `with-openai.yaml` reference bundles in `amplifier-foundation/bundles/` exist for embedded apps and tests.
 
 The README's older table mentions `dev`, `recipes`, `full` as separate bundles. In practice today, `foundation` covers most development use; `recipes` and `design-intelligence` are added by URL when you want their dedicated agents.
+
+There is no `amplifier recipes` CLI command — recipes are invoked via the `recipes` tool: `amplifier tool invoke recipes operation=execute recipe_path=<path>` (`amplifier/context/recipes-usage.md`).
 
 ### Pitfalls
 
@@ -288,7 +290,7 @@ uv tool install git+https://github.com/microsoft/amplifier-app-log-viewer@main
 amplifier-log-viewer
 ```
 
-It lives under the `amplifier-app-*` naming convention (§4.7) and has its own repo at `microsoft/amplifier-app-log-viewer`. The CLI emits the events; the viewer is one of several possible consumers — anything that can parse JSONL can build its own dashboard.
+The viewer serves a web UI at `http://localhost:8180` by default (`TESTING_GUIDE.md`). It lives under the `amplifier-app-*` naming convention (§4.7) and has its own repo at `microsoft/amplifier-app-log-viewer`. The CLI emits the events; the viewer is one of several possible consumers — anything that can parse JSONL can build its own dashboard.
 
 For sessions where you want to read raw events directly:
 
@@ -445,7 +447,38 @@ Once those are satisfied, `amplifier bundle add` of any bundle that lists your m
 
 ---
 
-## 4.9 The ecosystem at a glance
+## 4.9 The cache directory and module resolution
+
+The CLI installs into a uv-managed tool environment, but the *running code* lives at `~/.amplifier/cache/`. Each downloaded package (kernel, foundation, every module) clones into a hash-suffixed directory in the cache, and the CLI's site-packages contain `.egg-link` files that point at those clones (`amplifier/context/development-hygiene.md`). This is why deleting the cache directly breaks the install — the egg-links go dangling and the CLI cannot run the command that would repopulate them.
+
+When loading a module, the runtime walks six layers in order; the first match wins (mirrors Chapter 2 §2.5):
+
+1. Environment variable `AMPLIFIER_MODULE_<MODULE_ID>=<path>`.
+2. Workspace `.amplifier/modules/<module-id>/`.
+3. Project `.amplifier/settings.yaml`.
+4. User `~/.amplifier/settings.yaml`.
+5. Bundle `source:` field.
+6. Installed package entry point.
+
+`amplifier reset` is the safe escape hatch when the install gets into a bad state — it uninstalls and reinstalls the CLI in step so the cache and site-packages stay in sync. See §4.1.
+
+---
+
+## 4.10 Developing modules locally: `amplifier module dev`
+
+`amplifier module dev` is the on-ramp for editing a module without rebuilding wheels (`amplifier/docs/MODULE_DEVELOPMENT.md`). Subcommands:
+
+- `init` — create the workspace at `.amplifier/modules/` and offer to link existing module repos in the parent directory.
+- `link <module-id> [<path>]` — symlink a checkout into the workspace (offers to clone if no path given).
+- `list` / `status` — show which modules are workspace-linked and which are active for the current bundle.
+- `test <module-id>` — run that module's test suite.
+- `create` — scaffold a new module package.
+
+Layer 2 of the resolution order picks workspace-linked modules up automatically, so changes are seen immediately on the next `amplifier run`.
+
+---
+
+## 4.11 The ecosystem at a glance
 
 The catalog of who-built-what lives in **`amplifier/docs/MODULES.md`**. It is the single document that lists:
 
@@ -469,7 +502,7 @@ The catalog of who-built-what lives in **`amplifier/docs/MODULES.md`**. It is th
 
 ---
 
-## 4.10 Self-check
+## 4.12 Self-check
 
 1. You ran `amplifier bundle add git+https://github.com/microsoft/amplifier-bundle-recipes@main` and the new agents are still not showing up. What did you most likely forget?
 

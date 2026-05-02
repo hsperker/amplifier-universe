@@ -40,7 +40,7 @@ Foundation's `context/` philosophy docs and the `agents/` delegation/multi-agent
 
 ## D. Factual errors in chapters 2 or 3
 
-None found. URI_FORMATS adds `git+ssh://...` which Chapter 2 §2.5 omits but does not contradict; the chapter table is presented as the four common formats and is consistent with `parse_uri()`. Chapter 3 §3.1's directory-convention listing of `agents/`, `behaviors/`, `context/`, `recipes/` matches foundation's actual layout.
+None found. URI_FORMATS adds `git+ssh://...` which Chapter 2 §2.5 omits but does not contradict. Chapter 3 §3.1's directory layout matches foundation's actual structure.
 
 ## E. Worth-citing references
 
