@@ -3,6 +3,12 @@
 This guide walks through taking an [agentskills.io](https://agentskills.io) skill that
 references an MCP server and ships a Python script, and wiring it into Amplifier.
 
+> **Status: documented, not yet verified end to end.** Every step here is grounded
+> in the Amplifier source files listed under Source References, but the full flow
+> (skill loaded, MCP tools called, Python script executed) has not been run and
+> observed in a live session. Treat it as an accurate reading of the mechanisms,
+> and confirm against your own setup before relying on it.
+
 ## Before You Start: One Skill Is Actually Three Things
 
 The single most important thing to understand is that Amplifier does **not** treat
