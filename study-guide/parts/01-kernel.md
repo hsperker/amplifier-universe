@@ -341,6 +341,21 @@ The kernel emits standard events; orchestrators emit `execution:*`, `provider:*`
 
 **Related**: Hook protocol (§1.3), Coordinator's `process_hook_result` (§1.2), Orchestrator (§1.3).
 
+### What hooks and events are used for
+
+The HookRegistry is one mechanism with two intents. A handler that returns `HookResult(action="continue")` with unchanged data is a passive **event subscriber**; a handler that returns `deny`, `ask_user`, `inject_context`, or `modify` is an active **hook** that influences behavior. The API is the same; what differs is intent.
+
+Practically, almost every cross-cutting concern in Amplifier lives here — kept out of the kernel and out of every individual module:
+
+- **Observability.** Audit logs, latency/token/cost metrics, distributed tracing via `parent_id`, the JSONL event stream that the log viewer replays. All subscribe to the standard events and return `continue`.
+- **Policy enforcement.** Approval gates (`pre_tool_use` → `ask_user` for risky bash), allow/block-lists (`deny` on forbidden paths), rate or cost ceilings, compliance gates.
+- **Context shaping.** PII redaction on `llm:request` (`modify`), status reminders ("you are in plan mode") on each turn (`inject_context`), tool-result enrichment (file metadata appended), just-in-time documentation injection when an unfamiliar tool is called.
+- **Cross-cutting features.** Todo tracking, session naming on the first prompt, progress monitoring, streaming UI updates subscribed to `llm:response` chunks.
+- **Discovery / routing.** `emit_and_collect` (rather than `emit`) gathers all handler responses without action semantics — used for agent selection and tool resolution where the orchestrator collects opinions, picks one.
+- **Resilience.** Provider fallback on `provider:error`, synthetic tool-result repair when a model emits a malformed `tool_call`, retry strategies.
+
+The unifying property: the orchestrator does not know audit logging exists; the bash tool does not know about approval gates; the provider does not know about redaction. Each just emits and observes events; everything else snaps in at this seam.
+
 ---
 
 ## 1.3 The five module protocols
