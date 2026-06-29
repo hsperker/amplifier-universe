@@ -48,7 +48,7 @@ These are the structural-typing protocols every module implements. They are *the
 | **Provider** | LLM backend | `complete()`, `parse_tool_calls()`, `list_models()`, `get_info()` |
 | **Tool** | Agent capability | `execute(input) → ToolResult`; has `name`, `description` |
 | **Orchestrator** | The execution loop strategy | `execute()` |
-| **ContextManager** | Conversation memory | `add_message()`, `get_messages()`, `compact()` |
+| **ContextManager** | Conversation memory | `add_message()`, `get_messages_for_request()`, `get_messages()` |
 | **Hook** | Observability/control | `__call__(event, data) → HookResult` |
 
 **Static provider capabilities** (`ProviderInfo.capabilities`) — declared by a Provider in `get_info()` to advertise what it can do (e.g. `tools`, `streaming`, `vision`). Distinct from runtime **Capability** values on the coordinator; static = declared by the module, runtime = registered during a session.
