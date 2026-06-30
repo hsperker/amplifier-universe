@@ -1,0 +1,600 @@
+<title>Amplifier in 5 minutes</title>
+<meta name="description" content="A five-minute technical orientation to amplifier-core and amplifier-foundation: lifecycle, protocols, the loop, and the two layering primitives.">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #111;
+    background: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono {
+    font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  }
+
+  /* Deck and slides */
+  .deck {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+  }
+
+  .slide {
+    width: 100%;
+    max-width: 1100px;
+    padding: 56px 64px 96px;
+    min-height: 100vh;
+    margin: 0 auto;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+  }
+  .slide.active { display: flex; }
+
+  /* Typography */
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+  h1.title {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+  }
+  h2 {
+    font-size: 32px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  h3 {
+    font-size: 19px;
+    font-weight: 600;
+    color: #111;
+  }
+  .lede {
+    font-size: 19px;
+    color: #444;
+    line-height: 1.5;
+    max-width: 75ch;
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.55;
+    color: #333;
+    max-width: 75ch;
+  }
+  .small { font-size: 13px; color: #6b7280; }
+  code {
+    font-size: 0.92em;
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #111;
+  }
+
+  /* Architecture diagram (slide 2) */
+  .arch {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .arch-layer {
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 22px 26px 22px;
+    background: #ffffff;
+    position: relative;
+  }
+  .arch-layer.foundation {
+    border-color: #9ca3af;
+    background: #fafafa;
+  }
+  .arch-layer.core {
+    border-color: #2563eb;
+    background: #f5f9ff;
+  }
+  .arch-tag {
+    position: absolute;
+    top: -10px;
+    left: 18px;
+    background: #ffffff;
+    padding: 0 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: #2563eb;
+  }
+  .arch-tag.gray { color: #4b5563; }
+  .arch-body {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #1f2937;
+  }
+  .arch-arrow {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #94a3b8;
+    font-size: 18px;
+    margin: 2px 0;
+  }
+  .arrow-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #c7dbf9;
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+  }
+  .nested-box {
+    border: 1px dashed #94a3b8;
+    border-radius: 6px;
+    padding: 12px 16px 14px;
+    margin-top: 14px;
+    background: #ffffff;
+    position: relative;
+  }
+  .nested-box .arch-tag {
+    color: #4b5563;
+    background: #ffffff;
+  }
+  .arch-body .field { display: inline-block; min-width: 17ch; }
+  .arch-body .anno { color: #6b7280; }
+
+  /* Lifecycle (slide 3) */
+  .lifecycle {
+    display: flex;
+    flex-direction: column;
+  }
+  .lifecycle-row {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    gap: 22px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-top: 1px solid #e5e7eb;
+  }
+  .lifecycle-row:first-child { border-top: none; padding-top: 0; }
+  .lifecycle-step {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 15px;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .lifecycle-desc { font-size: 15px; color: #1f2937; line-height: 1.55; }
+  .lifecycle-desc ol {
+    margin: 6px 0 0 22px;
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.6;
+  }
+
+  /* Protocols table (slide 4) */
+  table.protocols { width: 100%; border-collapse: collapse; }
+  table.protocols td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  table.protocols tr:last-child td { border-bottom: none; }
+  table.protocols td:nth-child(1) {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    color: #2563eb;
+    width: 180px;
+    font-size: 14px;
+  }
+  table.protocols td:nth-child(2) {
+    color: #1f2937;
+    width: 320px;
+    font-size: 14px;
+  }
+  table.protocols td:nth-child(3) {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: #4b5563;
+  }
+
+  /* Code blocks */
+  pre.code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    color: #111;
+    white-space: pre;
+  }
+  pre.code .k  { color: #b91c1c; }      /* keyword */
+  pre.code .c  { color: #6b7280; font-style: italic; } /* comment */
+  pre.code .s  { color: #047857; }      /* string */
+  pre.code .v  { color: #2563eb; }      /* notable identifier */
+
+  /* Two-column (slide 6) */
+  .twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .twocol > div {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 22px 24px;
+    background: #fafafa;
+  }
+  .twocol > div h3 { margin-bottom: 12px; }
+  .twocol > div p { font-size: 14px; color: #374151; }
+  .twocol pre.code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12.5px;
+    color: #1f2937;
+  }
+  .actions {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+  }
+  .actions li {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    padding: 5px 0;
+    color: #1f2937;
+  }
+  .actions .label {
+    color: #2563eb;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 9ch;
+    margin-right: 8px;
+  }
+
+  /* Closing slide */
+  .closing { align-items: center; justify-content: center; text-align: center; }
+  .closing blockquote {
+    font-size: 26px;
+    line-height: 1.5;
+    font-weight: 500;
+    color: #111;
+    max-width: 760px;
+    margin: 0 auto;
+    border-left: 3px solid #2563eb;
+    padding-left: 24px;
+    text-align: left;
+  }
+  .closing .small { margin-top: 22px; }
+
+  /* Title slide */
+  .title-slide {
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+  .title-slide h1.title { margin: 14px 0 16px; font-size: 64px; }
+  .title-slide p.lede { font-size: 21px; color: #374151; }
+
+  /* Closing slide centering */
+  .closing { padding-top: 80px; padding-bottom: 80px; }
+
+  /* Navigation */
+  .nav-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #d1d5db;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    color: #4b5563;
+    font-size: 14px;
+    z-index: 10;
+  }
+  .nav-arrow:hover { background: #fff; color: #111; border-color: #9ca3af; }
+  .nav-arrow.prev { left: 18px; }
+  .nav-arrow.next { right: 18px; }
+  .nav-arrow.disabled { opacity: 0.25; cursor: default; }
+  .nav-arrow.disabled:hover { background: rgba(255,255,255,0.9); color: #4b5563; border-color: #d1d5db; }
+
+  .nav-counter {
+    position: fixed;
+    bottom: 16px;
+    right: 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: #6b7280;
+    user-select: none;
+    z-index: 10;
+  }
+
+  /* Responsive: shrink padding on narrow screens but never horizontal-scroll */
+  @media (max-width: 720px) {
+    .slide { padding: 36px 24px 80px; gap: 18px; }
+    h1.title { font-size: 38px; }
+    .title-slide h1.title { font-size: 44px; }
+    h2 { font-size: 24px; }
+    .lifecycle-row { grid-template-columns: 1fr; gap: 4px; }
+    .twocol { grid-template-columns: 1fr; }
+    table.protocols td:nth-child(1) { width: 130px; }
+    table.protocols td:nth-child(2) { width: auto; }
+    table.protocols td:nth-child(3) { display: none; }
+  }
+</style>
+
+<div class="deck">
+
+  <!-- ───────── SLIDE 1: TITLE ───────── -->
+  <section class="slide title-slide active">
+    <div class="eyebrow">Technical orientation · 5 minutes · 7 slides</div>
+    <h1 class="title">Amplifier in 5 minutes</h1>
+    <p class="lede">amplifier-core and amplifier-foundation, end to end.<br>For someone who already knows what an agent is and wants the mental model fast.</p>
+    <p class="small">Use the arrow keys (← →) or the buttons at the edges to advance.</p>
+  </section>
+
+  <!-- ───────── SLIDE 2: THE SKELETON ───────── -->
+  <section class="slide">
+    <div class="eyebrow">Slide 2 — Architecture</div>
+    <h2>The whole skeleton in one picture</h2>
+    <p class="lede">Every later slide names a part of this diagram. Two layers: foundation builds the Mount Plan; core runs it.</p>
+
+    <div class="arch">
+
+      <div class="arch-layer foundation">
+        <div class="arch-tag gray">amplifier-foundation</div>
+        <div class="arch-body">
+          <strong>Bundle</strong> <span class="anno">— markdown + YAML</span><br>
+          &nbsp;&nbsp;&nbsp;<span class="anno">↓</span> <code>compose()</code> &nbsp; <span class="anno">merge bundles</span><br>
+          &nbsp;&nbsp;&nbsp;<span class="anno">↓</span> <code>prepare()</code> &nbsp; <span class="anno">resolve module sources</span><br>
+          &nbsp;&nbsp;&nbsp;<span class="anno">↓</span> <code>to_mount_plan()</code><br>
+          <strong>Mount Plan</strong> <span class="anno">— a plain Python dict</span>
+        </div>
+      </div>
+
+      <div class="arch-arrow">
+        <span>▼</span>
+        <span class="arrow-label">AmplifierSession(mount_plan)</span>
+      </div>
+
+      <div class="arch-layer core">
+        <div class="arch-tag">amplifier-core</div>
+        <div class="arch-body">
+          <strong>AmplifierSession</strong> &nbsp;&nbsp; init() → execute() → cleanup()
+
+          <div class="nested-box">
+            <div class="arch-tag gray">Coordinator — the per-session noticeboard</div>
+            <span class="field">orchestrator</span><span class="anno">◄── single slot</span><br>
+            <span class="field">context</span><span class="anno">◄── single slot</span><br>
+            <span class="field">providers[name]</span><span class="anno">◄── name-keyed map</span><br>
+            <span class="field">tools[name]</span><span class="anno">◄── name-keyed map</span><br>
+            <span class="field">hooks</span><span class="anno">◄── event registry</span><br>
+            <span class="small" style="margin-top:6px; display:inline-block;">plus capabilities (named runtime values), cancellation, lifecycle events</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ───────── SLIDE 3: LIFECYCLE ───────── -->
+  <section class="slide">
+    <div class="eyebrow">Slide 3 — Lifecycle</div>
+    <h2>Session: build, init, run, tear down</h2>
+
+    <div class="lifecycle">
+      <div class="lifecycle-row">
+        <div class="lifecycle-step">__init__(plan)</div>
+        <div class="lifecycle-desc">Validate the Mount Plan. <strong>An orchestrator and a context manager are required</strong> — missing either raises at construction.</div>
+      </div>
+      <div class="lifecycle-row">
+        <div class="lifecycle-step">initialize()</div>
+        <div class="lifecycle-desc">
+          Load and mount modules in this fixed order:
+          <ol>
+            <li><strong>orchestrator</strong> &nbsp; required — hard fail on error</li>
+            <li><strong>context manager</strong> &nbsp; required — hard fail</li>
+            <li><strong>providers</strong> &nbsp; soft fail per module (logged, session continues)</li>
+            <li><strong>tools</strong> &nbsp; soft fail per module</li>
+            <li><strong>hooks</strong> &nbsp; soft fail per module</li>
+            <li><strong><code>on_session_ready()</code> callbacks</strong> across all modules — the one phase that sees the fully composed coordinator</li>
+          </ol>
+        </div>
+      </div>
+      <div class="lifecycle-row">
+        <div class="lifecycle-step">execute(prompt)</div>
+        <div class="lifecycle-desc">Emit <code>session:start</code> (or <code>session:resume</code>). Delegate to the orchestrator. Track state: Running → Completed / Failed / Cancelled.</div>
+      </div>
+      <div class="lifecycle-row">
+        <div class="lifecycle-step">cleanup()</div>
+        <div class="lifecycle-desc">Emit <code>session:end</code>. Run registered cleanup functions <strong>in reverse order</strong> of registration. Errors are logged, never re-raised.</div>
+      </div>
+    </div>
+
+<pre class="code"><span class="k">async with</span> AmplifierSession(mount_plan) <span class="k">as</span> session:
+    response = <span class="k">await</span> session.execute(<span class="s">"hello"</span>)
+<span class="c"># exiting the context calls session.cleanup() automatically</span></pre>
+  </section>
+
+  <!-- ───────── SLIDE 4: PROTOCOLS ───────── -->
+  <section class="slide">
+    <div class="eyebrow">Slide 4 — Modules</div>
+    <h2>Five protocols. That's the public surface.</h2>
+    <p class="lede">A class with the right methods <em>is</em> the protocol. No base class to inherit, no decorator, no registry. (In Python, this is called <em>structural typing</em>.)</p>
+
+    <table class="protocols">
+      <tr>
+        <td>Provider</td>
+        <td>Talks to an LLM backend (Anthropic, OpenAI, Pharia, Ollama…).</td>
+        <td>complete(messages, model=…)</td>
+      </tr>
+      <tr>
+        <td>Tool</td>
+        <td>An agent capability — bash, filesystem, web, search, code…</td>
+        <td>execute(input) → ToolResult</td>
+      </tr>
+      <tr>
+        <td>Orchestrator</td>
+        <td>The turn-by-turn loop (basic, streaming, model router…).</td>
+        <td>execute(prompt, context, providers, tools, hooks)</td>
+      </tr>
+      <tr>
+        <td>ContextManager</td>
+        <td>Conversation memory; decides compaction policy.</td>
+        <td>add_message(), get_messages_for_request()</td>
+      </tr>
+      <tr>
+        <td>Hook</td>
+        <td>Event handler — observability or policy intercept.</td>
+        <td>__call__(event, data) → HookResult</td>
+      </tr>
+    </table>
+
+    <p>Every module exposes one entry point — <code>async def mount(coordinator, config)</code> — which registers it on the coordinator's noticeboard.</p>
+  </section>
+
+  <!-- ───────── SLIDE 5: THE LOOP ───────── -->
+  <section class="slide">
+    <div class="eyebrow">Slide 5 — The loop</div>
+    <h2>The Orchestrator is just a module — and it does the work</h2>
+    <p class="lede">Every decision in the loop is policy. Hooks fire around each step. To change agent behaviour, swap the orchestrator.</p>
+
+<pre class="code"><span class="k">async def</span> execute(prompt, context, providers, tools, hooks, coordinator):
+    <span class="k">await</span> context.add_message({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: prompt})
+
+    <span class="k">while</span> True:
+        provider = self._pick_provider(providers)          <span class="c"># ← policy</span>
+        model    = self._pick_model(prompt)                <span class="c"># ← policy</span>
+
+        messages = <span class="k">await</span> context.get_messages_for_request(provider=provider)
+        <span class="k">await</span> hooks.emit(<span class="s">"llm:request"</span>, {<span class="s">"messages"</span>: messages})
+
+        response = <span class="k">await</span> provider.complete(messages, model=model)
+        <span class="k">await</span> hooks.emit(<span class="s">"llm:response"</span>, {<span class="s">"response"</span>: response})
+        <span class="k">await</span> context.add_message(response.assistant_message)
+
+        <span class="k">if not</span> response.tool_calls:
+            <span class="k">return</span> response.text
+
+        <span class="k">for</span> call <span class="k">in</span> response.tool_calls:
+            <span class="k">await</span> hooks.emit(<span class="s">"tool:pre"</span>, call)              <span class="c"># deny / ask_user can fire here</span>
+            tool   = coordinator.get(<span class="s">"tools"</span>, name=call.name)
+            result = <span class="k">await</span> tool.execute(call.input)
+            <span class="k">await</span> hooks.emit(<span class="s">"tool:post"</span>, {<span class="s">"result"</span>: result})
+            <span class="k">await</span> context.add_message(tool_result_message(result))</pre>
+  </section>
+
+  <!-- ───────── SLIDE 6: BUNDLES + HOOKS ───────── -->
+  <section class="slide">
+    <div class="eyebrow">Slide 6 — Two layering primitives</div>
+    <h2>Configuration is data. Policy is data. Neither needs the kernel to know.</h2>
+
+    <div class="twocol">
+      <div>
+        <h3>Bundles — configuration as data</h3>
+<pre class="code">bundle.md  <span class="c"># frontmatter + body</span>
+   ↓  compose()        <span class="c"># merge bundles, later wins</span>
+   ↓  prepare()        <span class="c"># fetch module sources</span>
+   ↓  to_mount_plan()
+<strong>Mount Plan (dict)</strong></pre>
+        <p style="margin-top:12px;">Per-tenant configuration is a YAML overlay. Per-environment configuration is another. <code>compose()</code> layers them. No code change is needed to add or remove modules — only the bundle changes.</p>
+      </div>
+
+      <div>
+        <h3>Hooks — policy as data</h3>
+        <p>A handler receives an event and returns one of five actions:</p>
+        <ul class="actions">
+          <li><span class="label">deny</span> short-circuit; return a refusal</li>
+          <li><span class="label">ask_user</span> open an approval prompt</li>
+          <li><span class="label">inject_context</span> append text to the next turn</li>
+          <li><span class="label">modify</span> transform the payload, then pass on</li>
+          <li><span class="label">continue</span> default — pure observation</li>
+        </ul>
+        <p style="margin-top:14px; color:#4b5563;">Approval gates, redaction, audit logging, cost ceilings, allow-lists — every cross-cutting concern lives here. The kernel ships none of them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── SLIDE 7: CLOSING ───────── -->
+  <section class="slide closing">
+    <div class="eyebrow">Slide 7 — Take this home</div>
+    <blockquote>
+      Five protocols.<br>
+      One coordinator.<br>
+      One loop.<br>
+      Two layering primitives — compose for config, hooks for policy.<br><br>
+      The kernel is roughly 2,600 lines you can read in an afternoon. Everything else is naming parts of the picture from slide 2.
+    </blockquote>
+    <p class="small">Source: <code>github.com/microsoft/amplifier-core</code> &nbsp;·&nbsp; study guide in this repo</p>
+    <p class="small" style="margin-top:6px;">amplifier-core · amplifier-foundation · MIT-licensed · early preview</p>
+  </section>
+
+  <div class="nav-arrow prev" id="prev" title="Previous (←)">◀</div>
+  <div class="nav-arrow next" id="next" title="Next (→)">▶</div>
+  <div class="nav-counter"><span id="cur">1</span> / <span id="total">7</span></div>
+</div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var cur = document.getElementById("cur");
+  var total = document.getElementById("total");
+  var prev = document.getElementById("prev");
+  var next = document.getElementById("next");
+  var i = 0;
+  total.textContent = slides.length;
+
+  function update() {
+    for (var idx = 0; idx < slides.length; idx++) {
+      if (idx === i) slides[idx].classList.add("active");
+      else slides[idx].classList.remove("active");
+    }
+    cur.textContent = i + 1;
+    if (i === 0) prev.classList.add("disabled");
+    else prev.classList.remove("disabled");
+    if (i === slides.length - 1) next.classList.add("disabled");
+    else next.classList.remove("disabled");
+    window.scrollTo(0, 0);
+  }
+
+  function go(d) {
+    var n = i + d;
+    if (n < 0 || n >= slides.length) return;
+    i = n;
+    update();
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { go(1); e.preventDefault(); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { go(-1); e.preventDefault(); }
+    else if (e.key === "Home") { i = 0; update(); }
+    else if (e.key === "End") { i = slides.length - 1; update(); }
+  });
+
+  prev.addEventListener("click", function () { go(-1); });
+  next.addEventListener("click", function () { go(1); });
+
+  update();
+})();
+</script>
