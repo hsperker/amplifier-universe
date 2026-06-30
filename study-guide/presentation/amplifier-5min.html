@@ -518,7 +518,7 @@
    ↓  prepare()        <span class="c"># fetch module sources</span>
    ↓  to_mount_plan()
 <strong>Mount Plan (dict)</strong></pre>
-        <p style="margin-top:12px;">Per-tenant configuration is a YAML overlay. Per-environment configuration is another. <code>compose()</code> layers them. No code change is needed to add or remove modules — only the bundle changes.</p>
+        <p style="margin-top:12px;">Real deployments often layer overlays — for example, a <em>tenant</em> bundle that swaps the model and adds the customer's private tools; an <em>environment</em> bundle that enables extra logging in staging; a <em>feature</em> bundle that mounts an experimental tool. The kernel knows nothing about tenants, environments, or features — <code>compose()</code> just merges bundles; the host decides what to layer.</p>
       </div>
 
       <div>
